@@ -17,8 +17,8 @@ class SA_optimiser:
         # print(self.requirements)
         loss = 0
         for i in range(0, iterations):
-            if i%(iterations/5) ==0:
-                print(f'loss for config {config} is {loss}, at prob {exp(+(-1)/temp)}') 
+            # if i%(iterations/5) ==0:
+            #     print(f'loss for config {config} is {loss}, at prob {exp(+(-1)/temp)}') 
             new_config = self.make_move(config.copy())
             new_loss = self.calculate_loss(new_config)
             if new_loss > loss:
@@ -29,9 +29,12 @@ class SA_optimiser:
                 loss = new_loss
             temp *= 0.999
         return config
-
+    
     @staticmethod
     def calculate_overlap(one_requirements:np.ndarray,one_availabilities:np.ndarray):
+        # print("!!!!!!!!!!")
+        # print(one_requirements)
+        # print(one_availabilities)
         return sum(one_requirements*one_availabilities)
 
     def calculate_loss(self,config)-> float:

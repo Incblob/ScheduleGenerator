@@ -1,0 +1,21 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Streamlit",
+            "type": "python",
+            "request": "launch",
+            "module": "streamlit",
+            "env": {
+                "STREAMLIT_APP": "ui.py",
+                "STREAMLIT_ENV": "development",
+                "PYTHONPATH": "${workspaceRoot}/src",
+            },
+            "args": [
+                "run",
+                "C:\\Users\\Nic\\Sync\\ScheduleGenerator\\ScheduleGenerator\\ui.py"
+            ],
+            "jinja": true
+        }
+    ]
+}
