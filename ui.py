@@ -2,8 +2,11 @@ import streamlit as st
 import numpy as np
 from modules.ui_screens import ui_csv_import, ui_actors, ui_scenes, ui_schedule
 
-#TODO: add logging
+import logging
 
+logging.basicConfig(level=logging.INFO)
+
+logging.debug("initializing session states")
 # Initialize streamlit session states
 def check_and_init_session_state(state):
     if state not in st.session_state:
@@ -31,13 +34,17 @@ st.caption("*also known as the susi de-insanator")
 
 
 with st.expander("CSV Import:"):
+    logging.debug("rendering CSV screen")
     ui_csv_import()
 
 with st.expander("Actors:"):
+    logging.debug("rendering Actors screen")
     ui_actors()
 
 with st.expander("Scenes:"):
+    logging.debug("rendering Scenes screen")
     ui_scenes()
 
 with st.expander("Schedule"):
+    logging.debug("rendering Schedule screen")
     ui_schedule()

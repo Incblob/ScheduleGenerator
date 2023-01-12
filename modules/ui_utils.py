@@ -2,9 +2,10 @@ import streamlit as st
 import pandas as pd
 from modules.optimizer import SA_optimiser
 import numpy as np
+import logging
 
 def write_list_3_col():
-    st.write(st.session_state.actors)
+    # st.write(st.session_state.actors)
     ac1, ac2, ac3 = st.columns(3)
         # per_column = int(len(st.session_state.actors) / 3)
     for i, actor in enumerate(st.session_state.actors):
@@ -39,7 +40,7 @@ def split_scenes_over_columns(use_all):
                 )
 def load_csv_schedule(df):
     import pandas as pd
-
+    logging.debug("loading availabilities")
     df = pd.concat(
         (
             df.iloc[:, 0],
@@ -52,9 +53,13 @@ def load_csv_schedule(df):
         st.session_state.actors.extend(df.iloc[:, 0].tolist())
     df_view = df.copy()
     df = replace_entries_in_df(df)
+    
     st.session_state.np_availabilities = np.array(df.iloc[:, 1:], dtype=np.float16)
+    logging.debug(f"availabilities are {st.session_state.np_availabilities}")
+    return df
 
 def replace_entries_in_df(df):
+    logging.debug("Replacing keywords in availabilities with numeric values")
     df = df.applymap(lambda x: x.lower())
     df.replace(["Yes", "yes", "YES"], 1, inplace=True)
     df.replace(
@@ -207,12 +212,18 @@ def get_config_results(config):
                     ]["1"]
                 )
             )
-            temp_df = pd.DataFrame(
-                st.session_state.np_availabilities[:, date_index],
-                index=st.session_state.actors,
-            )
-            temp_df = temp_df.loc[actors[-1]]
-            can_make_it.append(list(temp_df[temp_df[0] > 0].index))
+            available_on_day = []
+            for available, name in zip(st.session_state.np_availabilities[:, date_index],st.session_state.actors):
+                if name in actors[-1] and available == 1:
+                    available_on_day.append(name)                    
+            # temp_df = pd.DataFrame(
+            #     st.session_state.np_availabilities[:, date_index],
+            #     index=st.session_state.actors,
+            # )
+            # available_on_day = [actor for actor in actors[-1] if actor in temp_df.index] 
+            can_make_it.append(available_on_day)
+
+            
         else:
             scenes.append("No compatible scene found")
             actors.append("None")

@@ -101,11 +101,14 @@ def convert_scene_to_one_hot(
 @st.cache
 def check_actors_to_scenes(scenes, actors):
     problems = []
+    missing_actors = []
     for _, in_scene in scenes.items():
         for actor in in_scene["0"]:
             if actor not in actors:
                 problems.append(f"WARNING! {actor} missing in availabilities")
+                missing_actors.append(actor)
+
     if problems == []:
         return False
     else:
-        return problems
+        return (set(problems), missing_actors)

@@ -5,12 +5,15 @@ import numpy as np
 from modules.data_input_forms import check_actors_to_scenes, create_actors, create_scene, create_scene_requirements_matrix
 from modules.optimizer import SA_optimiser
 from modules.ui_utils import load_csv_schedule, write_list_3_col, split_scenes_over_columns, train_and_print
+import logging
 
 def ui_csv_import():
     st.subheader("select file to import availabilities and actors")
     csv_file = st.file_uploader("", type="csv")
     if csv_file:
+        logging.info('reading csv file')
         df = pd.read_csv(csv_file)
+        logging.debug(f'csv file has shape: {df.shape}')
         
         st.session_state.date_start = st.number_input(
             "column when dates_start",
@@ -19,14 +22,15 @@ def ui_csv_import():
             step=1,
             value=1,
         )
-        st.write(f"colums =  {df.columns}")
         date_temp = df.columns[st.session_state.date_start :].values
+        st.write(f"dates =  {date_temp}")
 
         st.session_state.date_range = st.select_slider(
             "Select Date Range", date_temp, value=(date_temp[0], date_temp[-1])
         )
         
         st.write("Check that the Data is correctly loaded:")
+        logging.info("loading csv data")
         st.dataframe(load_csv_schedule(df))
 
 def ui_actors():
@@ -39,23 +43,23 @@ def ui_actors():
     if st.session_state.new_actor:
         create_actors()
 
-    e1, e2 = st.columns(2)
-    with e1:
-        reset = st.button("!reset actors!")
-        if reset:
-            st.session_state.actors = []
-            st.session_state.np_availabilities = np.array([])
-            st.experimental_rerun()
-    with e2:
-        st.download_button(
-            "Download actors as json",
-            data=json.dumps(st.session_state.actors),
-            file_name="actors.json",
-            mime="json",
-        )
+    # e1, e2 = st.columns(2)
+    # with e1:
+    reset = st.button("!reset actors!")
+    if reset:
+        st.session_state.actors = []
+        st.session_state.np_availabilities = np.array([])
+        st.experimental_rerun()
+    # with e2:
+    #     st.download_button(
+    #         "Download actors as json",
+    #         data=json.dumps(st.session_state.actors),
+    #         file_name="actors.json",
+    #         mime="json",
+        # )
 
     if st.session_state.np_availabilities.size > 0:
-        st.subheader("resulting table")
+        st.subheader("resulting weighted availabilities table")
         st.dataframe(
             pd.DataFrame(
                 st.session_state.np_availabilities,
@@ -71,10 +75,25 @@ def ui_scenes():
         st.markdown(f"***{scene}*** with **{actors['0']}**, need to be: {actors['1']}")
 
     col1, col2 = st.columns(2)
-    with col1:
-        create_scene()
     with col2:
-        reset = st.button("!delete all scenes!")
+        create_scene()
+    with col1:
+        scenes_json = st.file_uploader("Upload scenes file", type="json")
+        if scenes_json:
+            scenes = json.loads(scenes_json.read())
+            if list(scenes.keys())[0] not in st.session_state.scenes:
+                st.session_state.scenes = st.session_state.scenes | scenes
+                st.experimental_rerun()
+            if problems := check_actors_to_scenes(
+                st.session_state.scenes, st.session_state.actors
+            ):
+                for problem in problems[0]:
+                    st.warning(problem)
+                # for missing_entry in problems[1]:
+                #     st.session_state.np_availabilities = np.append(st.session_state.np_availabilities, np.zeros(len(st.session_state.dates)), axis = 0)
+                #     st.session_state.actors.append(missing_entry)
+        
+        reset = st.button("!delete all scenes!", type = 'secondary')
         if reset:
             st.session_state.scenes = {}
             st.experimental_rerun()
@@ -86,17 +105,6 @@ def ui_scenes():
             mime="json",
         )
 
-        scenes_json = st.file_uploader("Upload scenes file", type="json")
-        if scenes_json:
-            scenes = json.loads(scenes_json.read())
-            if list(scenes.keys())[0] not in st.session_state.scenes:
-                st.session_state.scenes = st.session_state.scenes | scenes
-                st.experimental_rerun()
-            if problems := check_actors_to_scenes(
-                st.session_state.scenes, st.session_state.actors
-            ):
-                for problem in problems:
-                    st.write(problem)
 
 
 def ui_schedule():
