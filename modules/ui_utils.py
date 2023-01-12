@@ -214,14 +214,14 @@ def get_config_results(config):
             )
             available_on_day = []
             for available, name in zip(st.session_state.np_availabilities[:, date_index],st.session_state.actors):
-                if name in actors[-1] and available == 1:
+                if available == 1:
                     available_on_day.append(name)                    
             # temp_df = pd.DataFrame(
             #     st.session_state.np_availabilities[:, date_index],
             #     index=st.session_state.actors,
             # )
             # available_on_day = [actor for actor in actors[-1] if actor in temp_df.index] 
-            can_make_it.append(available_on_day)
+            can_make_it.append(sorted(available_on_day))
 
             
         else:
